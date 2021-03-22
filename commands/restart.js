@@ -1,3 +1,9 @@
+
+
+const { MessageEmbed } = require("discord.js");
+const { EMOJI_DONE , BOT_ID } = require('../config.json');
+
+
 module.exports = {
     name: "restart",
     aliases: ["blast"],
