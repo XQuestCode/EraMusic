@@ -10,7 +10,7 @@ module.exports = {
 
     execute: async (client, message, args) => {
         if (message.author.id !== '679561036646449178') {
-            return message.channel.send(`Only <@512520979788857355> Can Use This Command.`)
+            return message.channel.send(`Only <@679561036646449178> Can Use This Command.`)
         }
         await message.channel.send(`Restarting bot :)`)
         process.exit();
