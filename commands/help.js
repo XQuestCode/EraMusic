@@ -11,12 +11,13 @@ module.exports = {
     let commands = message.client.commands.array();
 
     let helpEmbed = new MessageEmbed()
+      .setAuthor(`${message.client.user.username}`, `${message.client.user.displayAvatarURL({ dynamic : true })}`)
       .setTitle(`${message.client.user.username} Help`)
       .setDescription(`This are the all commands of <@${BOT_ID}> ! ${EMOJI_DONE}`)
-      
-      .setColor("RED")
+      .setThumbnail(message.client.user.displayAvatarURL({ dynamic : true }))
+      .setColor("RANDOM")
 
-      .setFooter(`Hey Want to make a bot like this then - https://github.com/NIRMAL1090/ProMusicBot`);
+      .setFooter(`Requested by ${message.author.username}`);
       
       
     commands.forEach((cmd) => {
