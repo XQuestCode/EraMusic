@@ -1,18 +1,8 @@
 
 
-const { MessageEmbed } = require("discord.js");
-const { EMOJI_DONE , BOT_ID } = require('../config.json');
-
-
-module.exports = {
-    name: "restart",
-    aliases: ["blast"],
-
-    execute: async (client, message, args) => {
-        if (message.author.id !== '679561036646449178') {
-            return message.channel.send(`Only <@679561036646449178> Can Use This Command.`)
-        }
-        await message.channel.send(`Restarting bot :)`)
-        process.exit();
-    }
-}
+if (command === "restart") {
+    if (message.author.id !== "679561036646449178") return false;
+    message.reply("Restarting...");
+    process.destroy();
+    require("child_process").exec("node index.js");
+};
