@@ -1,6 +1,6 @@
 const ytdl = require("ytdl-core-discord");
 const scdl = require("soundcloud-downloader").default;
-const { canModifyQueue, STAY_TIME, LOCALE } = require("../util/EvobotUtil");
+const { canModifyQueue, STAY_TIME, LOCALE } = require("../util/PreobotUtil.js");
 const i18n = require("i18n");
 i18n.setLocale(LOCALE);
 
