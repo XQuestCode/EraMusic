@@ -111,7 +111,7 @@ ${EMOJI_ARROW} ***LINK :*** ${song.url}`);
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.connection.dispatcher.end();
-          queue.textChannel.send(`⏩ skipped the song`).catch(console.error);
+          queue.textChannel.send(`${user} ⏩ skipped the song`).catch(console.error);
           collector.stop();
           break;
 
@@ -121,7 +121,7 @@ ${EMOJI_ARROW} ***LINK :*** ${song.url}`);
           if (queue.playing) {
             queue.playing = !queue.playing;
             queue.connection.dispatcher.pause(true);
-            queue.textChannel.send(`⏸ paused the music.`).catch(console.error);
+            queue.textChannel.send(`${user} ⏸ paused the music.`).catch(console.error);
           } else {
             queue.playing = !queue.playing;
             queue.connection.dispatcher.resume();
@@ -135,11 +135,11 @@ ${EMOJI_ARROW} ***LINK :*** ${song.url}`);
           if (queue.volume <= 0) {
             queue.volume = 100;
             queue.connection.dispatcher.setVolumeLogarithmic(100 / 100);
-            queue.textChannel.send(`🔊 unmuted the music!`).catch(console.error);
+            queue.textChannel.send(`${user} 🔊 unmuted the music!`).catch(console.error);
           } else {
             queue.volume = 0;
             queue.connection.dispatcher.setVolumeLogarithmic(0);
-            queue.textChannel.send(`🔇 muted the music!`).catch(console.error);
+            queue.textChannel.send(`${user} 🔇 muted the music!`).catch(console.error);
           }
           break;
 
@@ -150,7 +150,7 @@ ${EMOJI_ARROW} ***LINK :*** ${song.url}`);
           else queue.volume = queue.volume - 10;
           queue.connection.dispatcher.setVolumeLogarithmic(queue.volume / 100);
           queue.textChannel
-            .send(`🔉 decreased the volume, the volume is now ${queue.volume}%`)
+            .send(`${user} 🔉 decreased the volume, the volume is now ${queue.volume}%`)
             .catch(console.error);
           break;
 
@@ -161,7 +161,7 @@ ${EMOJI_ARROW} ***LINK :*** ${song.url}`);
           else queue.volume = queue.volume + 10;
           queue.connection.dispatcher.setVolumeLogarithmic(queue.volume / 100);
           queue.textChannel
-            .send(`🔊 increased the volume, the volume is now ${queue.volume}%`)
+            .send(`${user} 🔊 increased the volume, the volume is now ${queue.volume}%`)
             .catch(console.error);
           break;
 
@@ -169,14 +169,14 @@ ${EMOJI_ARROW} ***LINK :*** ${song.url}`);
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.loop = !queue.loop;
-          queue.textChannel.send(`${EMOJI_DONE} Loop is now ${queue.loop ? "**on**" : "**off**"}`).catch(console.error);
+          queue.textChannel.send(`${user} ${EMOJI_DONE} Loop is now ${queue.loop ? "**on**" : "**off**"}`).catch(console.error);
           break;
 
         case "⏹":
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.songs = [];
-          queue.textChannel.send(`${EMOJI_DONE} stopped the music!`).catch(console.error);
+          queue.textChannel.send(`${user} ${EMOJI_DONE} stopped the music!`).catch(console.error);
           try {
             queue.connection.dispatcher.end();
           } catch (error) {
