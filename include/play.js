@@ -2,6 +2,15 @@ const ytdl = require("erit-ytdl");
 const scdl = require("soundcloud-downloader").default;
 const { canModifyQueue, STAY_TIME } = require("../util/PreobotUtil");
 const {EMOJI_ARROW , EMOJI_STARTED_PLAYING , EMOJI_DONE }= require('../config.json');
+
+
+const i18n = require("i18n");
+i18n.setLocale(LOCALE);
+
+// DONE
+
+
+
 module.exports = {
   async play(song, message) {
     const { SOUNDCLOUD_CLIENT_ID } = require("../util/PreobotUtil");
