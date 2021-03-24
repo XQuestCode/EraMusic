@@ -1,19 +1,12 @@
-const ytdl = require("erit-ytdl");
+const ytdl = require("ytdl-core-discord");
 const scdl = require("soundcloud-downloader").default;
-const { canModifyQueue, STAY_TIME } = require("../util/PreobotUtil");
-const {EMOJI_ARROW , EMOJI_STARTED_PLAYING , EMOJI_DONE }= require('../config.json');
-
-
+const { canModifyQueue, STAY_TIME, LOCALE } = require("../util/EvobotUtil");
 const i18n = require("i18n");
 i18n.setLocale(LOCALE);
 
-// DONE
-
-
-
 module.exports = {
   async play(song, message) {
-    const { SOUNDCLOUD_CLIENT_ID } = require("../util/PreobotUtil");
+    const { SOUNDCLOUD_CLIENT_ID } = require("../util/EvobotUtil");
 
     let config;
 
@@ -28,10 +21,14 @@ module.exports = {
     const queue = message.client.queue.get(message.guild.id);
 
     if (!song) {
-      if (queue.connection.dispatcher && message.guild.me.voice.channel) return;
-    queue.textChannel.send(`I'have played all the songs, Now my queue list is empty! ,i'm in vc just  **${message.client.prefix}p <song name>** ,to play song`).catch(console.error);
-    return message.client.queue.delete(message.guild.id);
-  }
+      setTimeout(function () {
+        if (queue.connection.dispatcher && message.guild.me.voice.channel) return;
+        queue.channel.leave();
+        queue.textChannel.send(i18n.__("play.leaveChannel"));
+      }, STAY_TIME * 1000);
+      queue.textChannel.send(i18n.__("play.queueEnded")).catch(console.error);
+      return message.client.queue.delete(message.guild.id);
+    }
 
     let stream = null;
     let streamType = song.url.includes("youtube.com") ? "opus" : "ogg/opus";
@@ -54,7 +51,9 @@ module.exports = {
       }
 
       console.error(error);
-      return message.channel.send(`Error: ${error.message ? error.message : error}`);
+      return message.channel.send(
+        i18n.__mf("play.queueError", { error: error.message ? error.message : error })
+      );
     }
 
     queue.connection.on("disconnect", () => message.client.queue.delete(message.guild.id));
@@ -84,18 +83,11 @@ module.exports = {
     dispatcher.setVolumeLogarithmic(queue.volume / 100);
 
     try {
-
-
-      
-   
-      
-var playingMessage = await queue.textChannel.send(`
-${EMOJI_STARTED_PLAYING} Started playing : 
-${EMOJI_ARROW} ***NAME :*** ${song.title} 
-${EMOJI_ARROW} ***LINK :*** ${song.url}`);
-
+      var playingMessage = await queue.textChannel.send(
+        i18n.__mf("play.startedPlaying", { title: song.title, url: song.url })
+      );
       await playingMessage.react("⏭");
-      await playingMessage.react("⏸");
+      await playingMessage.react("⏯");
       await playingMessage.react("🔇");
       await playingMessage.react("🔉");
       await playingMessage.react("🔊");
