@@ -29,6 +29,6 @@
     "quickmongo": "^2.0.6",
     "reconlx": "^1.0.46",
     "string-progressbar": "^1.0.1",
-    "ytdl-core": "^4.4.4"
+    "ytdl-core": "^4.5.0"
   }
 }

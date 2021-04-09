@@ -3,7 +3,7 @@ const { FOOTER } = require("../c");
 const config = require("../c");
 const db = require("../db");
 
-const {NIRMAL_NAME ,DYNAMO_NAME,XDOPE_NAME } = require("../c");
+const {NIRMAL_NAME ,DYNAMO_NAME, } = require("../c");
 
 module.exports = {
   name: "help",
@@ -16,7 +16,7 @@ module.exports = {
 
     let k = config.COLOR;
     
-    message.react("<a:music_checkDM:791581947612233738>"); 
+    message.react("<a:Check_DMs:771289063722450955>"); 
 
       let help = new MessageEmbed()
      
@@ -126,7 +126,7 @@ module.exports = {
             value: `Using this you can give suggestion / bug to my dev's 
             **${NIRMAL_NAME} (<@512520979788857355>) , 
             ${DYNAMO_NAME} (<@701731392228163587>) , 
-            ${XDOPE_NAME} (<@609264636231024641>).**`,
+             **`,
             inline: false,
           },
           {
