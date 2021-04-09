@@ -1,31 +1,19 @@
+const { MessageEmbed } = require('discord.js-light');
+const { COLOR } = require('../c');
+const db = require('../db');
+const config = require("../c");
 
-const { MessageEmbed } = require("discord.js");
-const { COLOR } = require('../config.json');
-const { EMOJI_DONE , BOT_ID  } = require('../config.json');
 
 module.exports = {
   name: "vote",
   aliases: ["voted"],
-  description: "To get vote link of our bot , please vote us!",
-  execute(message, args) {
-   
-    let vote = new MessageEmbed()
-      .setTitle(`**Vote**`)
-      .setDescription(
-        
+  execute: async (bot, message, args) => {
 
-        `Vote me please!\n\nLink: [Click Here](https://top.gg/bot/${BOT_ID}/vote) Thanks on advance`
-        
-      )
-      .setURL(
-        `https://top.gg/bot/${BOT_ID}/vote`
-      )
-
-      
-      .setColor(COLOR);
-    return message.channel.send(vote) , message.react(EMOJI_DONE);
-       
-  }
-
+    const footer = await db.get("footer");
+    message.channel.send(
+      new MessageEmbed().setDescription(
+        `Vote me and unlock features of this bot!\n\nLink: [Vote Me here](https://top.gg/bot/774642458889814066/vote)`
+      ).setColor(COLOR).setFooter(`Thanks for using PreoMusic !`)
+    );
+  },
 };
-console.log("vote working")

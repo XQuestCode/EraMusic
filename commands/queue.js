@@ -1,88 +1,91 @@
-const { MessageEmbed } = require("discord.js");
-const { EMOJI_ERROR } = require('../config.json');
+const { MessageEmbed, Message } = require("discord.js-light");
+const Discord = require("discord.js-light");
 
+const distube = require("../index.js");
+const config = require("../c");
+const db = require("../db.js");
 module.exports = {
   name: "queue",
-  cooldown: 5,
-  aliases: ["q","songlist"],
-  description: "Show the music queue and now playing.",
-  async execute(message) {
-    const permissions = message.channel.permissionsFor(message.client.user);
-    if (!permissions.has(["MANAGE_MESSAGES", "ADD_REACTIONS"]))
-      return message.reply("Missing permission to manage messages or add reactions");
+  cooldown: 3,
+  aliases: ["q"],
+  execute: async (bot, message, args) => {
 
-    const queue = message.client.queue.get(message.guild.id);
-    if (!queue) return message.channel.send(`${EMOJI_ERROR} **Nothing playing in this server**`);
+    let prefix = await db.get(`prefix_${message.guild.id}`);
+    if (prefix === null) prefix = `${config.PREFIX}`;
 
-    let currentPage = 0;
-    const embeds = generateQueueEmbed(message, queue.songs);
+    if (message.channel.type === "dm") return;
+    const footer = await db.get("footer");
 
-    const queueEmbed = await message.channel.send(
-      `**Current Page - ${currentPage + 1}/${embeds.length}**`,
-      embeds[currentPage]
-    );
-
-    try {
-      await queueEmbed.react("⬅️");
-      await queueEmbed.react("⏹");
-      await queueEmbed.react("➡️");
-    } catch (error) {
-      console.error(error);
-      message.channel.send(error.message).catch(console.error);
+    let k = config.COLOR;
+    if (!message.member.voice.channel)
+      return message.channel.send(
+        new MessageEmbed()
+          .setTitle("Error!")
+          .setDescription(
+            `${config.EMOJI_ERROR} You haven't joined the voice channel.`
+          )
+          .setTimestamp()
+          .setColor(config.COLOR)
+          .setFooter(`Invite me using ${prefix}invite`)
+      );
+    if (!distube.isPlaying(message)) {
+      return message.channel.send(`The queue is empty ;-;`, { code: "css" });
     }
 
-    const filter = (reaction, user) =>
-      ["⬅️", "⏹", "➡️"].includes(reaction.emoji.name) && message.author.id === user.id;
-    const collector = queueEmbed.createReactionCollector(filter, { time: 60000 });
-
-    collector.on("collect", async (reaction, user) => {
-      try {
-        if (reaction.emoji.name === "➡️") {
-          if (currentPage < embeds.length - 1) {
-            currentPage++;
-            queueEmbed.edit(`**Current Page - ${currentPage + 1}/${embeds.length}**`, embeds[currentPage]);
-          }
-        } else if (reaction.emoji.name === "⬅️") {
-          if (currentPage !== 0) {
-            --currentPage;
-            queueEmbed.edit(`**Current Page - ${currentPage + 1}/${embeds.length}**`, embeds[currentPage]);
-          }
-        } else {
-          collector.stop();
-          reaction.message.reactions.removeAll();
-        }
-        await reaction.users.remove(message.author.id);
-      } catch (error) {
-        console.error(error);
-        return message.channel.send(error.message).catch(console.error);
-      }
+    let o = 0;
+    
+    let queue = distube.getQueue(message);
+    if (!queue)
+      return message.channel.send(`The queue is empty ;-;`, { code: "css" });
+    let q = queue.songs.map((song, i) => {
+      return ` ${i === 0 ? `${o}) Now Playing: ` : `${i}`} [${song.name}] - ${
+        song.formattedDuration
+      }`;
     });
-  }
+    
+
+    let msg = await message.channel.send(
+      `${queue.songs
+        .slice(0, 10)
+        .map((songs, i) => `${i === 0 ? `${o})` : `${i})`} ${songs.name.slice(0, 35) + '…'}`)
+        .join("\n")}`, {code: "css"}
+    );
+
+    if (queue.songs.length > 10) {
+      const reaction1 = await msg.react("◀");
+      const reaction2 = await msg.react("▶");
+
+      let first = 0;
+      let second = 10;
+
+      const collector = msg.createReactionCollector((reaction, user) => user.id === message.author.id);
+
+      collector.on('collect', (r) => {
+        const reactAdd = queue.songs.slice(first + 10, second + 10).length;
+        const reactRemove = queue.songs.slice(first - 10, second - 10).length;
+
+        if (r.emoji.name === '▶' && reactAdd !== 0) {
+          r.users.remove(message.author.id);
+
+          first += 10;
+          second += 10;
+          msg.edit(`${queue.songs.slice(first, second).map((songs, i) => `${i === 0 ? `${o})` : `${i})`} ${songs.name.slice(0, 35) + '…'}`).join("\n")}`, {code: "css"})
+
+        } else if (r.emoji.name === '◀' && reactRemove !== 0) {
+          r.users.remove(message.author.id);
+
+          first -= 10;
+          second -= 10;
+
+          msg.edit(`${queue.songs.slice(first, second).map((songs, i) => `${i === 0 ? `${o})` : `${i})`} ${songs.name.slice(0, 35) + '…'}`).join('\n')}`, { code: "css" });
+
+        }
+      })
+      collector.on('end', () => {
+        reaction1.users.remove();
+        reaction2.users.remove();
+      });
+    }
+  },
 };
 
-function generateQueueEmbed(message, queue) {
-  let embeds = [];
-  let k = 10;
-
-  for (let i = 0; i < queue.length; i += 10) {
-    const current = queue.slice(i, k);
-    let j = i;
-    k += 10;
-
-    const info = current.map((track) => `${++j} - [${track.title}](${track.url})`).join("\n");
-
-    const embed = new MessageEmbed()
-      .setTitle("Song Queue\n")
-      .setThumbnail(message.guild.iconURL())
-      .setColor("#F8AA2A")
-      .setDescription(`**Current Song - [${queue[0].title}](${queue[0].url})**\n\n${info}`)
-      .setTimestamp();
-    embeds.push(embed);
-  }
-
-  return embeds;
-}
-
-
-
-console.log("queue working")

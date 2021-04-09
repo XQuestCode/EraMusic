@@ -1,14 +1,20 @@
-const { EMOJI_ARROW} = require('../config.json');
+const distube = require('../index');
+const db = require("../db");
+const config = require("../c");
 
 module.exports = {
-  name: "ping",
-  aliases: ["pong"],
-  cooldown: 10,
-  description: "Show the bot's average ping",
-  execute(message) {
-    message.reply(`${EMOJI_ARROW} Average ping to API: ${Math.round(message.client.ws.ping)} ms`).catch(console.error);
-  }
-};
+    name: "ping",
+    aliases: ["pong"],
+    execute: async(bot, message, args) => {
+      
+        let prefix = await db.get(`prefix_${message.guild.id}`);
+        if (prefix === null) prefix = `${config.PREFIX}`;
+    
+        if(message.channel.type == 'dm') return;
 
-
-console.log("Ping working")
+        message.channel.send('Pinging...').then(sent => {
+            sent.edit(`Ping - Took ${sent.createdTimestamp - message.createdTimestamp}ms`);
+        });
+        console.log(distube.guildQueues.size)
+    }
+}

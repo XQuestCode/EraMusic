@@ -1,144 +1,82 @@
-const { play } = require("../include/play");
-const ytdl = require("ytdl-core");
-const YouTubeAPI = require("simple-youtube-api");
-const scdl = require("soundcloud-downloader").default;
-const https = require("https");
-const { YOUTUBE_API_KEY, SOUNDCLOUD_CLIENT_ID, DEFAULT_VOLUME } = require("../util/PreobotUtil");
-const youtube = new YouTubeAPI(YOUTUBE_API_KEY);
-const { EMOJI_DONE } = require('../config.json');
+const { MessageEmbed, Message } = require("discord.js-light");
+const db = require("../db");
+const distube = require("../index.js");
+const config = require("../c");
 
 module.exports = {
   name: "play",
-  aliases: ["baja","bja","bajaa","ganna","p"],
-  cooldown: 3,
-  description: "Plays audio from YouTube or Soundcloud",
-  async execute(message, args) {
-    const { channel } = message.member.voice;
+  cooldown: 5,
+  aliases: ["p","song","bja","baja","ganna","song","gaana"],
+  execute: async (bot, message, args) => {
+    if (message.channel.type === "dm") return;
 
-    const serverQueue = message.client.queue.get(message.guild.id);
-    if (!channel) return message.reply("You need to join a voice channel first!").catch(console.error);
-    if (serverQueue && channel !== message.guild.me.voice.channel)
-      return message.reply(`You must be in the same channel as ${message.client.user}`).catch(console.error);
+    let k = config.COLOR;
 
-    if (!args.length)
-      return message
-        .reply(`Usage: **${message.client.prefix}play <YouTube URL | Song Name | Soundcloud URL>** <a:accept:779738945306886175>`)
-        .catch(console.error);
+    const footer = await db.get("footer");
 
-    const permissions = channel.permissionsFor(message.client.user);
-    if (!permissions.has("CONNECT"))
-      return message.reply("Cannot connect to voice channel, missing permissions");
-    if (!permissions.has("SPEAK"))
-      return message.reply("I cannot speak in this voice channel, make sure I have the proper permissions!");
+    let prefix = await db.get(`prefix_${message.guild.id}`);
+    if (prefix === null) prefix = `${config.PREFIX}`;
 
-    const search = args.join(" ");
-    const videoPattern = /^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi;
-    const playlistPattern = /^.*(list=)([^#\&\?]*).*/gi;
-    const scRegex = /^https?:\/\/(soundcloud\.com)\/(.*)$/;
-    const mobileScRegex = /^https?:\/\/(soundcloud\.app\.goo\.gl)\/(.*)$/;
-    const url = args[0];
-    const urlValid = videoPattern.test(args[0]);
 
-    // Start the playlist if playlist url was provided
-    if (!videoPattern.test(args[0]) && playlistPattern.test(args[0])) {
-      return message.client.commands.get("playlist").execute(message, args);
-    } else if (scdl.isValidUrl(url) && url.includes("/sets/")) {
-      return message.client.commands.get("playlist").execute(message, args);
+    if (!message.member.voice.channel)
+      return message.channel.send(
+        new MessageEmbed()
+          .setTitle("Error!")
+          .setDescription(
+            `${config.EMOJI_ERROR} You haven't joined the voice channel.`
+          )
+          .setTimestamp()
+          .setColor(config.COLOR)
+          .setFooter(`Invite me using ${prefix}invite`)
+      );
+
+    if (!message.channel.permissionsFor(bot.user.id).has(["CONNECT", "SPEAK"]))
+      return message.channel.send(
+        new MessageEmbed()
+          .setDescription(
+            `${config.EMOJI_ERROR} I don't have permission to join your voice channel`
+          )
+          .setFooter(`Invite me using ${prefix}invite`)
+          .setColor(config.COLOR)
+      );
+
+    if (!message.guild.me.voice.channel) {
+      await message.member.voice.channel.join();
+    }
+    db.set(`channel_${message.guild.id}`, message.member.voice.channel.id);
+
+    if (!distube.isPlaying(message)) {
+      await message.member.voice.channel.join();
     }
 
-    if (mobileScRegex.test(url)) {
-      try {
-        https.get(url, function (res) {
-          if (res.statusCode == "302") {
-            return message.client.commands.get("play").execute(message, [res.headers.location]);
-          } else {
-            return message.reply("No content could be found at that url.").catch(console.error);
-          }
-        });
-      } catch (error) {
-        console.error(error);
-        return message.reply(error.message).catch(console.error);
-      }
-      return message.reply("Following url redirection...").catch(console.error);
+   
+    if (args.length == 0) {
+      return message.channel.send(
+        new MessageEmbed()
+          .setDescription(`Try: \`${prefix}play <SongName | SongURL>\``)
+          .setColor(k)
+      );
     }
 
-    const queueConstruct = {
-      textChannel: message.channel,
-      channel,
-      connection: null,
-      songs: [],
-      loop: false,
-      volume: DEFAULT_VOLUME || 100,
-      playing: true
-    };
-
-    let songInfo = null;
-    let song = null;
-
-    if (urlValid) {
-      try {
-        songInfo = await ytdl.getInfo(url);
-        song = {
-          title: songInfo.videoDetails.title,
-          url: songInfo.videoDetails.video_url,
-          duration: songInfo.videoDetails.lengthSeconds
-        };
-      } catch (error) {
-        console.error(error);
-        return message.reply(error.message).catch(console.error);
-      }
-    } else if (scRegex.test(url)) {
-      try {
-        const trackInfo = await scdl.getInfo(url, SOUNDCLOUD_CLIENT_ID);
-        song = {
-          title: trackInfo.title,
-          url: trackInfo.permalink_url,
-          duration: Math.ceil(trackInfo.duration / 1000)
-        };
-      } catch (error) {
-        console.error(error);
-        return message.reply(error.message).catch(console.error);
+    if (message.member.voice.channel.id == message.guild.me.voice.channel.id) {
+      if (distube.isPaused(message)) {
+        message.react(config.EMOJI_DONE);
+        return distube.resume(message);
+      } else {
+        distube.play(message, args.join(" "));
       }
     } else {
-      try {
-        const results = await youtube.searchVideos(search, 1);
-        songInfo = await ytdl.getInfo(results[0].url);
-        song = {
-          title: songInfo.videoDetails.title,
-          url: songInfo.videoDetails.video_url,
-          duration: songInfo.videoDetails.lengthSeconds
-        };
-      } catch (error) {
-        console.error(error);
-        return message.reply(error.message).catch(console.error);
-      }
+      let k = config.COLOR;
+      return message.channel.send(
+        new MessageEmbed()
+          .setTitle("Error!")
+          .setDescription(
+            `I'm playing songs on another channel. If you want to listen song you could add my 2 more bots by executing \`${prefix}invite\` command.`
+          )
+          .setTimestamp()
+          .setColor(k)
+          .setFooter(`Invite me using ${prefix}invite`)
+      );
     }
-
-    if (serverQueue) {
-      serverQueue.songs.push(song);
-      return serverQueue.textChannel
-        .send(`${EMOJI_DONE} - **${song.title}** has been added to the queue by ${message.author}`)
-        .catch(console.error);
-    }
-
-
-    queueConstruct.songs.push(song);
-    message.client.queue.set(message.guild.id, queueConstruct);
-
-    try {
-      queueConstruct.connection = await channel.join();
-      await queueConstruct.connection.voice.setSelfDeaf(true);
-      play(queueConstruct.songs[0], message);
-    } catch (error) {
-      console.error(error);
-      message.client.queue.delete(message.guild.id);
-      await channel.leave();
-      return message.channel.send(`Could not join the channel: ${error}`).catch(console.error);
-      
-    }
-  }
+  },
 };
-
-
-
-console.log("Play cmd working")
