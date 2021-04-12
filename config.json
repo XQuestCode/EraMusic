@@ -1,0 +1,37 @@
+
+{
+  "TOKEN": "ODEzNTI1NjU5MjQyMzMyMTkw.YDQkzw.heDn1xOorhGEBkyfjiQdvvKTklQ",
+  "YOUTUBE_API_KEY": "AIzaSyDBclo0_8JIUKiVXIvggbTaicwAlXijK-Y",
+
+
+  "EMOJI_ARROW": "<a:fuego2:766713460040925195>",
+  "EMOJI_DONE": "<a:verify:781940642263597106>",
+  "EMOJI_ERROR": "<a:shy2:808198694972162079>",
+  "EMOJI_STARTED_PLAYING": "<a:nah:766713462767747122>",
+  "EMOJI_LINE":"<a:eline:823500997283545109>",
+
+
+  "BOT_ID": "813525659242332190",
+  "BOT_OWNER_ID": "679561036646449178",
+  "SERVER_INVITE": "https://discord.gg/3mJjMhyz",
+
+  "PREFIX": "$",
+  "BOT_PREFIX": "$",
+
+
+  "BOT_STATUS2":"Interacting QnX Fam,♤ coz interaction is everythin",
+  "BOT_STATUS3": "Among US Era ∞",
+  "BOT_STATUS4": "Most Active Server In India ◇",
+  "BOT_STATUS5": "support preo music ♡",
+  
+  "BOT_PRESENCE" : "PLAYING",
+
+  "SOUNDCLOUD_CLIENT_ID": "",
+  "MAX_PLAYLIST_SIZE": 900,
+  "PRUNING": true,
+  "STAY_TIME": 30,
+  "DEFAULT_VOLUME": 80
+}
+
+
+     
